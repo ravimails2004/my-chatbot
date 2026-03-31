@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teams-bot
+  namespace: default
+  labels:
+    app: teams-bot
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: teams-bot
+  template:
+    metadata:
+      labels:
+        app: teams-bot
+    spec:
+      containers:
+        - name: teams-bot
+          # Replace with your ECR image URI
+          image: <AWS_ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/teams-bot:latest
+          ports:
+            - containerPort: 3978
+          env:
+            - name: MICROSOFT_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: teams-bot-secret
+                  key: MICROSOFT_APP_ID
+            - name: MICROSOFT_APP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: teams-bot-secret
+                  key: MICROSOFT_APP_PASSWORD
+            - name: AZURE_DEVOPS_ORG
+              valueFrom:
+                secretKeyRef:
+                  name: teams-bot-secret
+                  key: AZURE_DEVOPS_ORG
+            - name: AZURE_DEVOPS_PROJECT
+              valueFrom:
+                secretKeyRef:
+                  name: teams-bot-secret
+                  key: AZURE_DEVOPS_PROJECT
+            - name: AZURE_DEVOPS_PAT
+              valueFrom:
+                secretKeyRef:
+                  name: teams-bot-secret
+                  key: AZURE_DEVOPS_PAT
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3978
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3978
+            initialDelaySeconds: 5
+            periodSeconds: 10

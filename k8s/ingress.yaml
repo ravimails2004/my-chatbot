@@ -1,0 +1,25 @@
+# Requires an ingress controller (e.g. AWS Load Balancer Controller) installed on your EKS cluster.
+# The Microsoft Bot Service requires HTTPS — use ACM certificate ARN below.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: teams-bot
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:<REGION>:<AWS_ACCOUNT_ID>:certificate/<CERT_ID>"
+spec:
+  rules:
+    - host: teams-bot.your-domain.com
+      http:
+        paths:
+          - path: /api/messages
+            pathType: Prefix
+            backend:
+              service:
+                name: teams-bot
+                port:
+                  number: 80
